@@ -1,0 +1,63 @@
+import requests
+import os
+from bs4 import BeautifulSoup
+from datetime import datetime
+ 
+
+
+today_date = '{d.month}/{d.day}/{d.year}'.format(d=datetime.now())
+
+
+url = "URL"
+r = requests.get() 
+
+soup = BeautifulSoup(r.content, 'html.parser') 
+
+table = soup.findAll('tbody')[2]
+
+application_records=  table.findAll('tr')[1]
+
+
+#this for loop splits the string to get the desired filename of the required zipped file   
+for ele in application_records.findAll('td'):
+    text = str(ele)
+    text = text.replace(' ','')
+    text = text.replace('\n','')
+    pos1 = text.find('<br/>')
+    date_unstripped = text[pos1+5:]
+    pos2 = date_unstripped.find('<br/>')
+    date = date_unstripped[:pos2]
+    
+    if(date == today_date):
+        url_ele = ele.find('a' , href = True)
+        url = url_ele['href']
+        #print(url)
+        break
+    
+
+# Downloading the file by sending the request to the URL
+req = requests.get(url)
+ 
+# Split URL to get the file name
+filename = url.split('/')[-1]
+ 
+# Writing the file to the local file system
+
+with open(filename,'wb') as output_file:
+    output_file.write(req.content)
+    
+    
+print("Output file location")
+
+#unzipping the zipped file
+print(os.getcwd())
+
+#Unzipping the code
+import zipfile
+
+target= (os.getcwd()+'\\'+filename)
+handle=zipfile.ZipFile(target)  #zipped
+path=os.getcwd()+'\\Unzipped_Files' 
+#creating new folder in the existing directory
+new_dir=os.mkdir(path)
+handle.extractall(path)
